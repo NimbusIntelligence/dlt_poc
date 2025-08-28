@@ -61,35 +61,35 @@ def get_personio_source() -> DltSource:
                     "paginator": {"type": "single_page"},
                 },
             },
-            # {
-            #     "name": "attendances",
-            #     "endpoint": {
-            #         "path": "company/attendances",
-            #         "params": {
-            #             "start_date": "2024-01-01",
-            #             "end_date": date.today().strftime("%Y-%m-%d"),
-            #         },
-            #     },
-            # },
-            # {
-            #     "name": "projects",
-            #     "endpoint": {"path": "company/attendances/projects"},
-            # },
-            # {
-            #     "name": "absence_periods",
-            #     "endpoint": {
-            #         "path": "company/absence-periods",
-            #         "paginator": {
-            #             "type": "page_number",
-            #             "base_page": 1,
-            #             "page": 1,
-            #             "page_param": "offset",
-            #             "total_path": "metadata.total_pages",
-            #         },
-            #         "params": {"limit": 200, "offset": 1},
-            #     },
-            # },
+            {
+                "name": "attendances",
+                "endpoint": {
+                    "path": "company/attendances",
+                    "params": {
+                        "start_date": "2024-01-01",
+                        "end_date": date.today().strftime("%Y-%m-%d"),
+                    },
+                },
+            },
+            {
+                "name": "projects",
+                "endpoint": {"path": "company/attendances/projects"},
+            },
+            {
+                "name": "absence_periods",
+                "endpoint": {
+                    "path": "company/absence-periods",
+                    "paginator": {
+                        "type": "page_number",
+                        "base_page": 1,
+                        "page": 1,
+                        "page_param": "offset",
+                        "total_path": "metadata.total_pages",
+                    },
+                    "params": {"limit": 200, "offset": 1},
+                },
+            },
         ],
     }
 
-    return rest_api_source(personio_config)
+    return rest_api_source(personio_config, name="personio")
