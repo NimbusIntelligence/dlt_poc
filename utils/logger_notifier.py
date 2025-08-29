@@ -1,9 +1,8 @@
-from contextlib import redirect_stderr
-import sys
 import json
+import logging
 from datetime import datetime
 from typing import Iterable
-from dlt import Pipeline, pipeline
+from dlt import Pipeline
 from dlt.common.pipeline import LoadInfo
 from dlt.common.runtime.slack import send_slack_message
 from dlt.extract import DltSource
@@ -17,10 +16,14 @@ class LoggerNotifier:
         self.slack_hook = slack_hook
         self.created_at = datetime.now()
         self.timestamp_fmt = timestamp_fmt
-        self.redirect_stderr = redirect_stderr(
-            open(self.get_filename("stderr", "log"), "w")
-        )
-        # sys.stderr = open(self.get_filename("stderr", "log"), "w")
+
+        # Create a logger
+        self.logger = logging.getLogger("dlt")
+        self.logger.setLevel(logging.INFO)
+
+        # Redirect logs to a file
+        handler = logging.FileHandler(self.get_filename("log", "log"), "w")
+        self.logger.addHandler(handler)
 
     def get_filename(self, prefix: str, ext: str) -> str:
         return f"logs/{prefix}_{self.created_at.strftime(self.timestamp_fmt)}.{ext}"
@@ -57,12 +60,15 @@ class LoggerNotifier:
                 pipeline_str = (
                     f"*Pipeline -> {load_dict['pipeline']['pipeline_name']}*\n"
                 )
-                pipeline_str += f"""
-    - *Destination*: {load_dict['destination_displayable_credentials']}
-    - *Dataset*: {load_dict['dataset_name']}
-    - *Started at*: {load_dict['started_at'].astimezone()}
-    - *Finished at*: {load_dict['finished_at'].astimezone()}
-        """
+                pipeline_str += f"- *Destination*: {load_dict['destination_displayable_credentials']}"
+                pipeline_str += f"- *Dataset*: {load_dict['dataset_name']}"
+                pipeline_str += (
+                    f"- *Started at*: {load_dict['started_at'].astimezone()}"
+                )
+                pipeline_str += (
+                    f"- *Finished at*: {load_dict['finished_at'].astimezone()}"
+                )
+
                 job_strs = []
                 for package in load_dict["load_packages"]:
                     jobs = package["jobs"]
@@ -97,27 +103,8 @@ class LoggerNotifier:
             with open(self.get_filename("error", "log"), "w") as f:
                 f.write(f"{type(exception)}: {exception}")
 
-        with open(self.get_filename("summary", "md"), "w") as f:
+        with open(self.get_filename("summary", "txt"), "w") as f:
             f.write(message_str)
 
         if self.slack_hook:
             send_slack_message(self.slack_hook, message_str)
-
-    # def redirect_stderr(self):
-    #     filename = self.get_filename("stderr", "log")
-    #     with open(filename, "w") as f:
-    #         f.writelines(sys.stderr.readlines())
-
-    # def stderr_redirect(self):
-    #     parent = self
-    #
-    #     class StderrRedirecter:
-    #
-    #         def __init__(self) -> None:
-    #             self.filename = parent.get_filename("stderr", "log")
-    #             self.mode = "w"
-    #
-    #         def __enter__(self):
-    #             self.file = open(self.filename, self.mode)
-    #             with
-    #             return self.file

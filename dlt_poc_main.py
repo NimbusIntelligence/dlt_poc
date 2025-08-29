@@ -1,4 +1,3 @@
-from contextlib import redirect_stderr
 import dlt
 
 from sources.personio import get_personio_source
